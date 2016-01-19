@@ -1137,6 +1137,31 @@ Public Class FtpSolution
 
 #End Region
 
+
+    Try
+            {
+                FtpSolution ftp = New FtpSolution();
+                //ftp.setCredentials("thi_dev_tecware_temp", "UrlfExuPPy", "stefanie.thiagoquinteiro.com");
+                ftp.setCredentials("tecware", "T3c16@", "ftp://tecware.com.br/");
+                //Test Ok 19012016
+                //ftp.uploadFile(@"C:\Users\proje\Pictures\illustration_07.jpg", "httpdocs/MakeTecware/Diversos/LogoTecware.jpg");
+                //Test Ok 19012016
+                //ftp.MakeDir("httpdocs/MakeTecware/testeMake");
+                //Test Ok 19012016
+                //ftp.MakeDir("ftp://tecware.com.br/httpdocs/MakeTecware/testeMak/", @"C:\Users\proje\Pictures\illustration_07.jpg", "Logo_tecware.jpg");
+                //Test Ok 19012016
+                ftp.MakeDir("ftp://ftp.tecware.com.br/httpdocs/MakeTecware/testeMak/", @"C:\Users\proje\Pictures\illustration_07.jpg");
+
+            }
+            Catch ( Exception ex )
+            {
+                Console.Write(ex.Message);
+            }
+
+
+
+
+
 End Class
 
 
