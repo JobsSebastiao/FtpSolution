@@ -1,0 +1,9 @@
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\bin\Debug\TesteFtp.exe.config
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\bin\Debug\TesteFtp.exe
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\bin\Debug\TesteFtp.pdb
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\bin\Debug\GerenciadorFtp.dll
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\bin\Debug\GerenciadorFtp.pdb
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\obj\Debug\TesteFtp.csprojResolveAssemblyReference.cache
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\obj\Debug\TesteFtp.exe
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\obj\Debug\TesteFtp.pdb
+C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\bin\Debug\GerenciadorFtp.xml

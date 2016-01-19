@@ -1,0 +1,18 @@
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.dll
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.pdb
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.xml
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.tlb
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.Resources.resources
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.vbproj.GenerateResource.Cache
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.dll
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.xml
+c:\users\sebastiao.martins\documents\visual studio 2013\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.pdb
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.dll
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.pdb
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.xml
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.Resources.resources
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.vbproj.GenerateResource.Cache
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.dll
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.xml
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.pdb
+C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.tlb
