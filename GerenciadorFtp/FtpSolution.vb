@@ -1,7 +1,6 @@
 ﻿
 Imports System.Net
 Imports System.IO
-Imports System.Runtime.InteropServices
 Imports System.Windows.Forms
 Imports System.Drawing
 
@@ -72,6 +71,8 @@ Public Class FtpSolution
     Public Overloads Sub uploadFile(ByVal fileName As String, ByVal uploadPath As String)
         ''_FileName As String, _UploadPath As String
 
+        uploadPath = trataUrlACriar(uploadPath)
+
         Dim _FileInfo As New System.IO.FileInfo(fileName)
 
         ' Create FtpWebRequest object from the Uri provided
@@ -127,7 +128,9 @@ Public Class FtpSolution
             _FileStream.Dispose()
 
         Catch ex As WebException
-            Throw New WebException("Não Foi possível realizar a ação solicitada," + vbCrLf + " favor verificar o caminho do diretório ftp informado e/ou o camminho do arquivo enviado para upload!")
+
+            Console.Write(ex.Response.ToString() + ex.Data.ToString() & ex.Message)
+            'Throw New WebException("Não Foi possível realizar a ação solicitada," + vbCrLf + " favor verificar o caminho do diretório ftp informado e/ou o camminho do arquivo enviado para upload!")
         Catch ex As Exception
             Throw ex
         End Try
@@ -733,7 +736,6 @@ Public Class FtpSolution
     '''  Criar diretórios no FTP (Optional salva um arquivo no diretório criado)
     ''' </summary>
     ''' <param name="_CreatePath">Caminho onde será criado a nova pasta</param>
-    ''' <param name="_file">OPTIONAL Arquivo que será salvo no diratório</param>
     ''' <param name="_fileName">OPTIONAL Nome para o arquivo Upado.</param>
     Public Sub MakeDir(ByVal _CreatePath As String, Optional ByVal _fileDirectory As String = "FILE", Optional ByVal _fileName As String = "NEW")
 
@@ -751,10 +753,6 @@ Public Class FtpSolution
                 _FtpWebRequest.UseBinary = True
                 _FtpWebRequest.Credentials = _Credentials  ''recupera o valor dos atributos da classe para senha e usuário
 
-                Using _response As System.Net.FtpWebResponse = _FtpWebRequest.GetResponse()
-                    _response.Close()
-                End Using
-
                 Dim response As FtpWebResponse = DirectCast(_FtpWebRequest.GetResponse(), FtpWebResponse)
                 _Stream = response.GetResponseStream()
                 _Stream.Close()
@@ -763,7 +761,6 @@ Public Class FtpSolution
 
             ''Quando é passado o arquivo o upload é feito logo após a criação do diretório
             If _fileDirectory <> "FILE" Then
-
                 If (_fileName <> "NEW") Then 'Salva o arquivo com o nome especificado no parametro _fileName
                     Me.uploadFile(_fileDirectory, _CreatePath + "/" + _fileName)
                 Else
@@ -771,7 +768,6 @@ Public Class FtpSolution
                     uploadFile(_fileDirectory, _CreatePath & "/" & _fileName)
                 End If
             End If
-
 
         Catch ex As Exception
 
@@ -861,6 +857,7 @@ Public Class FtpSolution
 
         Try
 
+            ' Dim response As FtpWebResponse = DirectCast(_request.GetResponse(), FtpWebResponse)
             Using _response As System.Net.FtpWebResponse = _request.GetResponse()
                 _response.Close()
                 Return True
@@ -891,13 +888,14 @@ Public Class FtpSolution
             _CreatePath = _CreatePath.Substring(0, _CreatePath.Length - 1)
         End If
 
+        If Not (_CreatePath.StartsWith("ftp://")) Then
+            _CreatePath = "ftp://" + _CreatePath
+        End If
+
         trataUrlACriar = _CreatePath
 
     End Function
 
-    Public Function testes()
-
-    End Function
     ''' <summary>
     ''' Verifica se o arquivo existe no diretório
     ''' </summary>
@@ -1110,11 +1108,21 @@ Public Class FtpSolution
     ''' <remarks></remarks>
     Public Sub setCredentials(ByVal _ftpUser As String, ByVal _ftpPass As String, ByVal _ftpDomain As String)
 
-        If Not (_ftpDomain.StartsWith("ftp://")) Then
-            _ftpDomain = "ftp://" + _ftpDomain
+        trataStrDominio(_ftpDomain)
+
+        _Credentials = New System.Net.NetworkCredential(_ftpUser, _ftpPass, _ftpDomain)
+
+    End Sub
+
+    Public Sub trataStrDominio(ByRef _ftpDomain As String)
+
+        If (_ftpDomain.EndsWith("/") Or _ftpDomain.EndsWith("\")) Then
+            _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.Length - 1)
         End If
 
-        _Credentials = New System.Net.NetworkCredential(Trim(_ftpUser), Trim(_ftpPass), Trim(_ftpDomain))
+        If (_ftpDomain.StartsWith("ftp://")) Then
+            _ftpDomain = _ftpDomain.Substring(6)
+        End If
 
     End Sub
 

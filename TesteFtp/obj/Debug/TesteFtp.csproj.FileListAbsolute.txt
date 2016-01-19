@@ -7,3 +7,11 @@ C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\obj\Debug\TesteFtp.csprojResolveAssembl
 C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\obj\Debug\TesteFtp.exe
 C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\obj\Debug\TesteFtp.pdb
 C:\CLIENTES\TECWARE\FtpSolution\TesteFtp\bin\Debug\GerenciadorFtp.xml
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\bin\Debug\TesteFtp.exe.config
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\obj\Debug\TesteFtp.exe
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\obj\Debug\TesteFtp.pdb
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\bin\Debug\TesteFtp.exe
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\bin\Debug\TesteFtp.pdb
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\bin\Debug\GerenciadorFtp.dll
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\bin\Debug\GerenciadorFtp.pdb
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\TesteFtp\obj\Debug\TesteFtp.csprojResolveAssemblyReference.cache

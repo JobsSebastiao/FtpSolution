@@ -16,3 +16,13 @@ C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.dll
 C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.xml
 C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.pdb
 C:\CLIENTES\TECWARE\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.tlb
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.Resources.resources
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.vbproj.GenerateResource.Cache
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.dll
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.xml
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.pdb
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.dll
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.pdb
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.xml
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\bin\Debug\GerenciadorFtp.tlb
+C:\Users\proje\Documents\Visual Studio 2015\Projects\FtpSolution\GerenciadorFtp\obj\Debug\GerenciadorFtp.vbprojResolveAssemblyReference.cache
