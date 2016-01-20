@@ -20,12 +20,14 @@ Public Class FtpSolution
 
 #End Region
 
-    Private _FTPUser As String 'Usuário Ftps
+    Private _FtpUser As String 'Usuário Ftps
     Private _FtpDomain As String 'Dominio Ftp
-    Private _FTPPass As String 'Senha Ftp
+    Private _FtpPass As String 'Senha Ftp
     Private _Credentials As System.Net.NetworkCredential
-    Private _UploadPath As String 'Caminho FTP onde será salvo o arquivo
-    Private _DownloadPath As String 'Caminho de um diretório Windows
+    Private _UploadedPath As String 'Caminho onde foi salvo o arquivo durante upload
+    Private _DownloadedPath As String 'Caminho de um diretório Windows para download
+    Private _DeletedPath As String 'Caminho do arquivo deletado após a chamada do método deleteFile
+    Private _DirWeb As String 'Local onde salvar o arquivo no ftp
 
     'Utilizado apenas em caso de download pelo método MakeDir 
     Private _date As String
@@ -72,7 +74,7 @@ Public Class FtpSolution
     Public Overloads Sub uploadFile(ByVal fileName As String, ByVal uploadPath As String)
         ''_FileName As String, _UploadPath As String
 
-        uploadPath = trataUrlACriar(uploadPath)
+        uploadPath = trataUrlDirFtp(uploadPath)
 
         Dim _FileInfo As New System.IO.FileInfo(fileName)
 
@@ -110,11 +112,8 @@ Public Class FtpSolution
 
         Try
 
-            Dim response As FtpWebResponse = DirectCast(_FtpWebRequest.GetResponse(), FtpWebResponse)
-            'response.GetResponseStream()
             ' Stream to which the file to be upload is written
-            'Dim _Stream As System.IO.Stream = _FtpWebRequest.GetRequestStream()
-            Dim _Stream As System.IO.Stream = response.GetResponseStream()
+            Dim _Stream As System.IO.Stream = _FtpWebRequest.GetRequestStream()
 
             ' Read from the file stream 2kb at a time
             Dim contentLen As Integer = _FileStream.Read(buff, 0, buffLength)
@@ -126,6 +125,8 @@ Public Class FtpSolution
                 contentLen = _FileStream.Read(buff, 0, buffLength)
             Loop
 
+            Me.UploadedPath = uploadPath
+
             ' Close the file stream and the Request Stream
             _Stream.Close()
             _Stream.Dispose()
@@ -133,12 +134,53 @@ Public Class FtpSolution
             _FileStream.Dispose()
 
         Catch ex As WebException
-
-            Console.Write(ex.Response.ToString() + ex.Data.ToString() & ex.Message)
-            'Throw New WebException("Não Foi possível realizar a ação solicitada," + vbCrLf + " favor verificar o caminho do diretório ftp informado e/ou o camminho do arquivo enviado para upload!")
+            Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + ex.Message)
         Catch ex As Exception
-            Throw ex
+            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + ex.Message)
         End Try
+    End Sub
+
+#End Region
+
+#Region "DeleteFiles"
+
+    Public Overloads Sub deleteFile(ByVal nomeArquivoADeletar As String)
+
+        nomeArquivoADeletar = trataUrlDirFtp(nomeArquivoADeletar)
+
+        ' Create FtpWebRequest object from the Uri provided
+        Dim _FtpWebRequest As System.Net.FtpWebRequest = CType(System.Net.FtpWebRequest.Create(New Uri(nomeArquivoADeletar)), System.Net.FtpWebRequest)
+
+        ' Provide the WebPermission Credintials
+        _FtpWebRequest.Credentials = _Credentials  ''recupera o valor dos atributos da classe para senha e usuário
+
+        ' By default KeepAlive is true, where the control connection is not closed
+        ' after a command is executed.
+        _FtpWebRequest.KeepAlive = False
+
+        Dim proxy = _FtpWebRequest.Proxy
+        proxy = Nothing
+
+        ' set timeout for 20 seconds
+        _FtpWebRequest.Timeout = 20000
+
+        ' Specify the command to be executed.
+        _FtpWebRequest.Method = System.Net.WebRequestMethods.Ftp.DeleteFile
+
+        ' Specify the data transfer type.
+        _FtpWebRequest.UseBinary = True
+
+        Try
+            ' Stream to which the file to be upload is written
+            Dim resposta As FtpWebResponse = _FtpWebRequest.GetResponse()
+            Me.DeletedPath = nomeArquivoADeletar
+
+        Catch ex As WebException
+            Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : deleteFile" + vbCrLf + ex.Message)
+        Catch ex As Exception
+            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : deleteFile" + vbCrLf + ex.Message)
+        End Try
+
     End Sub
 
 #End Region
@@ -169,11 +211,11 @@ Public Class FtpSolution
         intInicio = 1
 
         'Define a pasta que será utilizada para armazenar os Scripts baixados
-        Me.downloadPath = destinePath
+        Me.DownloadedPath = destinePath
 
         'Verifica se a pasta para donwload exite caso não exista ela será criada
-        If Dir(downloadPath(), vbDirectory) = "" Then
-            downloadPath() = "C:\Titanium\Scripts"
+        If Dir(DownloadedPath(), vbDirectory) = "" Then
+            DownloadedPath() = "C:\Titanium\Scripts"
         Else
             'Se a pasta existe verifica se e quais scripts de versão já estão na pasta
             strArquivos = Dir("C:\Titanium\Scripts\")
@@ -200,7 +242,7 @@ Public Class FtpSolution
 
                 lbMensagem.Text = "Baixando arquivo Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql"
                 ' ----- Obtem local onde irá salvar o arquivo
-                pastaDestino = My.Computer.FileSystem.CombinePath(downloadPath(), "Script_v" & My.Computer.FileSystem.GetName(ftpPath & CStr(intInicio).PadLeft(4, "0") & ".sql"))
+                pastaDestino = My.Computer.FileSystem.CombinePath(DownloadedPath(), "Script_v" & My.Computer.FileSystem.GetName(ftpPath & CStr(intInicio).PadLeft(4, "0") & ".sql"))
 
                 ' ----- Faz a conexao com o arquivo no site FTP
                 request = CType(FtpWebRequest.Create(New Uri(ftpPath & "Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql")), FtpWebRequest)
@@ -249,7 +291,6 @@ Public Class FtpSolution
 
     End Sub
 
-
     Public Overloads Sub DownloadScripts()
 
         'Utilizado na progressBar
@@ -279,8 +320,8 @@ Public Class FtpSolution
         'Me.downloadPath = destinePath
 
         'Verifica se a pasta para donwload exite caso não exista ela será criada
-        If Dir(downloadPath(), vbDirectory) = "" Then
-            downloadPath() = "C:\Titanium\Scripts"
+        If Dir(DownloadedPath(), vbDirectory) = "" Then
+            DownloadedPath() = "C:\Titanium\Scripts"
         Else
             'Se a pasta existe verifica se e quais scripts de versão já estão na pasta
             strArquivos = Dir("C:\Titanium\Scripts\")
@@ -305,10 +346,10 @@ Public Class FtpSolution
                 formulario.lbMensagem() = "Baixando arquivo Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql"
 
                 ' ----- Obtem local onde irá salvar o arquivo
-                pastaDestino = My.Computer.FileSystem.CombinePath(downloadPath(), "Script_v" & My.Computer.FileSystem.GetName(uploadPath() & CStr(intInicio).PadLeft(4, "0") & ".sql"))
+                pastaDestino = My.Computer.FileSystem.CombinePath(DownloadedPath(), "Script_v" & My.Computer.FileSystem.GetName(UploadedPath() & CStr(intInicio).PadLeft(4, "0") & ".sql"))
 
                 ' ----- Faz a conexao com o arquivo no site FTP
-                request = CType(FtpWebRequest.Create(New Uri(uploadPath() & "Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql")), FtpWebRequest)
+                request = CType(FtpWebRequest.Create(New Uri(UploadedPath() & "Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql")), FtpWebRequest)
                 request.Credentials = _Credentials
                 request.KeepAlive = False
                 request.UseBinary = True
@@ -326,10 +367,10 @@ Public Class FtpSolution
 
                 Loop Until contador = 0
 
-                If FileLen(downloadPath() & "Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql") > 0 Then
+                If FileLen(DownloadedPath() & "Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql") > 0 Then
                     intInicio = intInicio + 1
                     formulario.progresBar = formulario.progresBar() + 1
-                ElseIf (File.Exists(downloadPath() & "Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql")) Then
+                ElseIf (File.Exists(DownloadedPath() & "Script_v" & CStr(intInicio).PadLeft(4, "0") & ".sql")) Then
                     intInicio = intInicio + 1
                     formulario.progresBar = formulario.progresBar() + 1
                 End If
@@ -353,7 +394,6 @@ Public Class FtpSolution
 
 
     End Sub
-
 
 #End Region
 
@@ -461,11 +501,11 @@ Public Class FtpSolution
         Dim pastaDestino As String
 
         ' ----- Obtem local onde irá salvar o arquivo
-        pastaDestino = My.Computer.FileSystem.CombinePath(downloadPath(), My.Computer.FileSystem.GetName(Me.uploadPath()))
+        pastaDestino = My.Computer.FileSystem.CombinePath(DownloadedPath(), My.Computer.FileSystem.GetName(Me.UploadedPath()))
 
         Try
             ' ----- Faz a conexao com o arquivo no site FTP
-            _request = CType(FtpWebRequest.Create(New Uri(Me.uploadPath())), FtpWebRequest)
+            _request = CType(FtpWebRequest.Create(New Uri(Me.UploadedPath())), FtpWebRequest)
 
             _request.Credentials = _Credentials
 
@@ -520,7 +560,7 @@ Public Class FtpSolution
         Dim pastaDestino As String
 
         ' ----- Obtem local onde irá salvar o arquivo
-        pastaDestino = My.Computer.FileSystem.CombinePath(downloadPath, My.Computer.FileSystem.GetName(caminhoArquivoFTP))
+        pastaDestino = My.Computer.FileSystem.CombinePath(DownloadedPath, My.Computer.FileSystem.GetName(caminhoArquivoFTP))
 
         Try
             ' ----- Faz a conexao com o arquivo no site FTP
@@ -579,10 +619,10 @@ Public Class FtpSolution
         Dim pastaDestino As String
 
 
-        Me.downloadPath = destinePath
+        Me.DownloadedPath = destinePath
 
         ' ----- Obtem local onde irá salvar o arquivo
-        pastaDestino = My.Computer.FileSystem.CombinePath(downloadPath(), My.Computer.FileSystem.GetName(ftpPath))
+        pastaDestino = My.Computer.FileSystem.CombinePath(DownloadedPath(), My.Computer.FileSystem.GetName(ftpPath))
 
         Try
             ' ----- Faz a conexao com o arquivo no site FTP
@@ -644,10 +684,10 @@ Public Class FtpSolution
         Dim pastaDestino As String
 
 
-        Me.downloadPath = destinePath
+        Me.DownloadedPath = destinePath
 
         ' ----- Obtem local onde irá salvar o arquivo
-        pastaDestino = My.Computer.FileSystem.CombinePath(downloadPath(), My.Computer.FileSystem.GetName(ftpPath))
+        pastaDestino = My.Computer.FileSystem.CombinePath(DownloadedPath(), My.Computer.FileSystem.GetName(ftpPath))
 
         Try
             ' ----- Faz a conexao com o arquivo no site FTP
@@ -747,7 +787,7 @@ Public Class FtpSolution
         Dim _Stream As Stream = Nothing
 
         Try
-            _CreatePath = Me.trataUrlACriar(_CreatePath)
+            _CreatePath = Me.trataUrlDirFtp(_CreatePath)
 
             If (DiretorioExiste(_CreatePath)) Then
                 Console.Write("Diretório já existe." + vbCrLf + "Realizando próxima ação.")
@@ -880,24 +920,39 @@ Public Class FtpSolution
 
     End Function
 
-    Public Function trataUrlACriar(ByVal _CreatePath As String) As String
+    Public Function trataUrlDirFtp(ByVal _CreatePath As String) As String
 
-        If Not (_CreatePath.Contains(Me._Credentials.Domain)) Then
-            If Not (_CreatePath.Substring(0, 1) = "/") Then
-                _CreatePath = "/" + _CreatePath
+        Try
+
+            If Not (_CreatePath.Contains(Me._Credentials.Domain)) Then
+
+                If Not (_CreatePath.Substring(0, 1) = "/") Then
+                    _CreatePath = "/" + _CreatePath
+                End If
+
+                If (Me.DirWeb <> "" Or Me.DirWeb <> Nothing) Then
+                    If Not (_CreatePath.Contains(Me.DirWeb)) Then
+                        _CreatePath = Me.DirWeb + _CreatePath.Substring(1)
+                    End If
+                End If
+
+                _CreatePath = Me._Credentials.Domain + _CreatePath
+
             End If
-            _CreatePath = Me._Credentials.Domain + _CreatePath
-        End If
 
-        If (_CreatePath.Substring(_CreatePath.Length - 1) = "/" Or _CreatePath.Substring(_CreatePath.Length - 1) = "\") Then
-            _CreatePath = _CreatePath.Substring(0, _CreatePath.Length - 1)
-        End If
+            If (_CreatePath.Substring(_CreatePath.Length - 1) = "/" Or _CreatePath.Substring(_CreatePath.Length - 1) = "\") Then
+                _CreatePath = _CreatePath.Substring(0, _CreatePath.Length - 1)
+            End If
 
-        If Not (_CreatePath.StartsWith("ftp://")) Then
-            _CreatePath = "ftp://" + _CreatePath
-        End If
+            If Not (_CreatePath.StartsWith("ftp://")) Then
+                _CreatePath = "ftp://" + _CreatePath
+            End If
 
-        trataUrlACriar = _CreatePath
+            trataUrlDirFtp = _CreatePath
+
+        Catch ex As Exception
+            Throw New Exception("Problemas ao definir string Ulr" + vbCrLf + "MÉTODO : trataUrlDirFtp ")
+        End Try
 
     End Function
 
@@ -964,127 +1019,89 @@ Public Class FtpSolution
 
 #Region "Gets e Sets"
 
-    ''' <summary>
-    ''' Get e Set da string no formato de data
-    ''' </summary>
-    ''' <value> Não é nescessário passar um valor pois este não será utilizado </value>
-    ''' <returns> Uma string no formato de data utilizando  o separador " - "</returns>
-    ''' <remarks></remarks>
     Public Property dateFtp() As String
-
         Get
-
             Return _date
-
         End Get
-
         Set(value As String)
-
             _date = CStr(Date.Now.Day & "-" & Date.Now.Month & "-" & Date.Now.Year)
-
         End Set
-
     End Property
 
-    ''' <summary>
-    ''' Get e Set da string no formato de hora
-    ''' </summary>
-    ''' <value> Não é nescessário passar um valor pois este não será utilizado </value>
-    ''' <returns> Uma string no formato de hora utilizando  o separador " - "</returns>
-    ''' <remarks></remarks>
     Public Property hourFtp() As String
-
         Get
             Return _hour
-
         End Get
-
         Set(value As String)
-
             _hour = CStr(Date.Now.Hour & "-" & Date.Now.Minute & "-" & Date.Now.Second)
-
         End Set
-
     End Property
 
-    ''' <summary>
-    ''' Get e Set da string no formato de data a hora utilizando o separador "-"
-    ''' </summary>
-    ''' <value> Não é nescessário passar um valor pois este não será utilizado </value>
-    ''' <returns> Uma string no formato de data a hora utilizando o separador "-"</returns>
-    ''' <remarks></remarks>
     Public Property dateAndHourFtp() As String
-
         Get
             Return _dateAndHour
-
         End Get
-
         Set(value As String)
-
             Me.hourFtp = Nothing
             Me.dateFtp = Nothing
             _dateAndHour = CStr(dateFtp & " " & hourFtp)
-
         End Set
-
     End Property
 
     Public Sub setPastaUpload(caminho As String)
-
-        Me.uploadPath = caminho
-
+        Me.UploadedPath = caminho
     End Sub
 
-    Public Property uploadPath() As String
-
+    Public Property UploadedPath() As String
         Get
-            Return _UploadPath
-
+            Return _UploadedPath
         End Get
-
-        Set(UploadPath As String)
-
-            _UploadPath = UploadPath
-
+        Private Set(UploadPath As String)
+            _UploadedPath = UploadPath
         End Set
+    End Property
 
+    Public Property DeletedPath() As String
+        Get
+            Return _DeletedPath
+        End Get
+        Private Set(DeletedPath As String)
+            _DeletedPath = DeletedPath
+        End Set
+    End Property
+
+    Public Property DirWeb() As String
+        Get
+            Return _DirWeb
+        End Get
+        Private Set(DirWeb As String)
+            _DirWeb = DirWeb
+        End Set
     End Property
 
     Public Sub setPastaDownload(ByVal caminho As String)
-        Me.downloadPath = caminho
+        Me.DownloadedPath = caminho
     End Sub
 
-    ''' <summary>
-    ''' Pasta para download de arquivos do Servidor FTP(File transfer Protocol)
-    ''' </summary>
-    ''' <value></value>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Property downloadPath() As String
+    Public Property DownloadedPath() As String
 
+        '++++=++=++=++=++=+==+=+=++=+=+=+=+=+=+=+=+=++=++++=+++++++++++++=++=++=+==+=++=+++++++=+=+++=+++=++===++==++==++==++=+++==+++
+        'ESTE ´PROPRIEDADE PRECISA SER ATUALIZADA POIS HOUVERAM ALTERAÇÃOES EM 19-01-2016 ENTRE AS QUAIS ESTÁ AÇÃO NÃO FOI ATUALIZADA
+        '++++=++=++=++=++=+==+=+=++=+=+=+=+=+=+=+=+=++=++++=+++++++++++++=++=++=+==+=++=+++++++=+=+++=+++=++===++==++==++==++=+++==+++
         Get
-
-            Return _downloadPath
-
+            Return _DownloadedPath
         End Get
-
         Set(diretorio As String)
-
-            _downloadPath = diretorio
-
-
+            _DownloadedPath = diretorio
             ''caso o caminho informado ou o caminho da pasta titanium não exista ele é setado no diretótio do disco C
             If (My.Computer.FileSystem.DirectoryExists(diretorio)) Then
-                _downloadPath = diretorio
+                _DownloadedPath = diretorio
             ElseIf (My.Computer.FileSystem.DirectoryExists("C:\Titanium\Arquivos")) Then
-                _downloadPath = "C:\Titanium\Arquivos"
+                _DownloadedPath = "C:\Titanium\Arquivos"
             Else
-                _downloadPath = "C:\"
+                _DownloadedPath = "C:\"
             End If
-
         End Set
-
     End Property
 
     Public ReadOnly Property SenhaFtp() As String
@@ -1106,38 +1123,63 @@ Public Class FtpSolution
     End Property
 
     ''' <summary>
-    ''' Seta a Senha e o Usuário para a conexão FTP
+    ''' Define as credencias a serem utilizadas durante a conexão com o Ftp
     ''' </summary>
-    ''' <param name="_FTPUser"> Usuário</param>
-    ''' <param name="_FTPPass"> Senha </param>
+    ''' <param name="_ftpUser"> Usuário</param>
+    ''' <param name="_ftpPass"> Senha</param>
+    ''' <param name="_ftpDomain"> Dominio</param>
     ''' <remarks></remarks>
     Public Sub setCredentials(ByVal _ftpUser As String, ByVal _ftpPass As String, ByVal _ftpDomain As String)
-
+        Me.DirWeb = ""
         trataStrDominio(_ftpDomain)
-
         _Credentials = New System.Net.NetworkCredential(_ftpUser, _ftpPass, _ftpDomain)
+    End Sub
 
+    ''' <summary>
+    '''  Define as credencias a serem utilizadas durante a conexão com o Ftp
+    ''' </summary>
+    ''' <param name="_ftpUser"> Usuário</param>
+    ''' <param name="_ftpPass"> Senha</param>
+    ''' <param name="_ftpDomain"> Dominio</param>
+    ''' <param name="_dirWeb">Diretório onde será salvo, deletado,renomeado um determinado arquivo</param> 
+    Public Sub setCredentials(ByVal _ftpUser As String, ByVal _ftpPass As String, ByVal _ftpDomain As String, ByVal _dirWeb As String)
+        Me.DirWeb = _dirWeb
+        trataStrDominio(_ftpDomain)
+        _Credentials = New System.Net.NetworkCredential(_ftpUser, _ftpPass, _ftpDomain)
     End Sub
 
     Public Sub trataStrDominio(ByRef _ftpDomain As String)
 
-        If (_ftpDomain.EndsWith("/") Or _ftpDomain.EndsWith("\")) Then
-            _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.Length - 1)
+        If (_ftpDomain.StartsWith("http://")) Then
+            _ftpDomain = _ftpDomain.Substring(7)
         End If
 
         If (_ftpDomain.StartsWith("ftp://")) Then
             _ftpDomain = _ftpDomain.Substring(6)
         End If
 
+        If (_ftpDomain.Contains(".com/")) Then
+            If (_ftpDomain.Substring(_ftpDomain.LastIndexOf(".com/") + 5).Length > 0) Then
+                _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.LastIndexOf(".com/") + 5)
+            End If
+        End If
+
+        If (_ftpDomain.Contains(".br/")) Then
+            If (_ftpDomain.Substring(_ftpDomain.LastIndexOf(".br/") + 4).Length > 0) Then
+                _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.LastIndexOf(".br/") + 4)
+            End If
+        End If
+
+        If (_ftpDomain.EndsWith("/") Or _ftpDomain.EndsWith("\")) Then
+            _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.Length - 1)
+        End If
+
     End Sub
 
     Public ReadOnly Property getCredentials() As System.Net.NetworkCredential
-
         Get
             Return _Credentials
-
         End Get
-
     End Property
 
 #End Region
