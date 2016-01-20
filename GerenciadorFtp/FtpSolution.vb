@@ -1,6 +1,7 @@
 ﻿
 Imports System.Net
 Imports System.IO
+Imports System.Threading
 Imports System.Windows.Forms
 Imports System.Drawing
 
@@ -108,8 +109,12 @@ Public Class FtpSolution
         Dim _FileStream As System.IO.FileStream = _FileInfo.OpenRead()
 
         Try
+
+            Dim response As FtpWebResponse = DirectCast(_FtpWebRequest.GetResponse(), FtpWebResponse)
+            'response.GetResponseStream()
             ' Stream to which the file to be upload is written
-            Dim _Stream As System.IO.Stream = _FtpWebRequest.GetRequestStream()
+            'Dim _Stream As System.IO.Stream = _FtpWebRequest.GetRequestStream()
+            Dim _Stream As System.IO.Stream = response.GetResponseStream()
 
             ' Read from the file stream 2kb at a time
             Dim contentLen As Integer = _FileStream.Read(buff, 0, buffLength)
@@ -1136,31 +1141,6 @@ Public Class FtpSolution
     End Property
 
 #End Region
-
-
-    Try
-            {
-                FtpSolution ftp = New FtpSolution();
-                //ftp.setCredentials("thi_dev_tecware_temp", "UrlfExuPPy", "stefanie.thiagoquinteiro.com");
-                ftp.setCredentials("tecware", "T3c16@", "ftp://tecware.com.br/");
-                //Test Ok 19012016
-                //ftp.uploadFile(@"C:\Users\proje\Pictures\illustration_07.jpg", "httpdocs/MakeTecware/Diversos/LogoTecware.jpg");
-                //Test Ok 19012016
-                //ftp.MakeDir("httpdocs/MakeTecware/testeMake");
-                //Test Ok 19012016
-                //ftp.MakeDir("ftp://tecware.com.br/httpdocs/MakeTecware/testeMak/", @"C:\Users\proje\Pictures\illustration_07.jpg", "Logo_tecware.jpg");
-                //Test Ok 19012016
-                ftp.MakeDir("ftp://ftp.tecware.com.br/httpdocs/MakeTecware/testeMak/", @"C:\Users\proje\Pictures\illustration_07.jpg");
-
-            }
-            Catch ( Exception ex )
-            {
-                Console.Write(ex.Message);
-            }
-
-
-
-
 
 End Class
 
