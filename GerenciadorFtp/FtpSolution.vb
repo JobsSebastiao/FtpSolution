@@ -33,6 +33,7 @@ Public Class FtpSolution
     Private _date As String
     Private _hour As String
     Private _dateAndHour As String
+    Private _CountTry As Int16
 
 
 #Region "Construtores"
@@ -71,18 +72,21 @@ Public Class FtpSolution
     ''' <param name="uploadPath">Caminho onde será salvo o arquivo no FTP </param>
     ''' <remarks></remarks>
     ''' <exception cref="WebException">Caso não seja possível acessar o caminho Ftp informado para upload.</exception>
-    Public Overloads Sub uploadFile(ByVal fileName As String, ByVal uploadPath As String)
-        ''_FileName As String, _UploadPath As String
+    Public Overloads Sub UploadFile(ByVal fileName As String, ByVal uploadPath As String)
 
+        Me.CountTry() = Me.CountTry() + 1
+
+        'Trata a string com o caminho do Ftp
         uploadPath = trataUrlDirFtp(uploadPath)
 
+        'caminho do arquivo que será upado
         Dim _FileInfo As New System.IO.FileInfo(fileName)
 
         ' Create FtpWebRequest object from the Uri provided
         Dim _FtpWebRequest As System.Net.FtpWebRequest = CType(System.Net.FtpWebRequest.Create(New Uri(uploadPath)), System.Net.FtpWebRequest)
 
         ' Provide the WebPermission Credintials
-        _FtpWebRequest.Credentials = _Credentials  ''recupera o valor dos atributos da classe para senha e usuário
+        _FtpWebRequest.Credentials = _Credentials
 
         ' By default KeepAlive is true, where the control connection is not closed
         ' after a command is executed.
@@ -134,9 +138,18 @@ Public Class FtpSolution
             _FileStream.Dispose()
 
         Catch ex As WebException
-            Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + ex.Message)
+            ' Caso o motivo do erro seja não autorização de acesso ao ftp
+            ' , é feita mais uma tentativa utilizando ou não o Dominio nas credenciais da conexão
+            If (Me.CountTry = 1) Then
+                If (ex.Status = WebExceptionStatus.ProtocolError) Then
+                    Me._Credentials.Domain = IIf(Me._Credentials.Domain <> "", "", ex.Response.ResponseUri.Host)
+                    UploadFile(fileName, uploadPath)
+                End If
+            Else
+                Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + "MOTIVO : " + ex.Message)
+            End If
         Catch ex As Exception
-            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + ex.Message)
+            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + "MOTIVO : " + ex.Message)
         End Try
     End Sub
 
@@ -144,7 +157,9 @@ Public Class FtpSolution
 
 #Region "DeleteFiles"
 
-    Public Overloads Sub deleteFile(ByVal nomeArquivoADeletar As String)
+    Public Overloads Sub DeleteFile(ByVal nomeArquivoADeletar As String)
+
+        Me.CountTry() = Me.CountTry() + 1
 
         nomeArquivoADeletar = trataUrlDirFtp(nomeArquivoADeletar)
 
@@ -176,9 +191,22 @@ Public Class FtpSolution
             Me.DeletedPath = nomeArquivoADeletar
 
         Catch ex As WebException
-            Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : deleteFile" + vbCrLf + ex.Message)
+            ' Caso o motivo do erro seja não autorização de acesso ao ftp
+            ' , é feita mais uma tentativa utilizando ou não o Dominio nas credenciais da conexão
+            If (ex.Message.Contains("550")) Then
+                Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : DeleteFile" + vbCrLf + "MOTIVO : " + ex.Message)
+            End If
+
+            If (Me.CountTry = 1) Then
+                If (ex.Status = WebExceptionStatus.ProtocolError) Then
+                    Me._Credentials.Domain = IIf(Me._Credentials.Domain <> "", "", ex.Response.ResponseUri.Host)
+                    DeleteFile(nomeArquivoADeletar)
+                End If
+            Else
+                Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : DeleteFile" + vbCrLf + "MOTIVO : " + ex.Message)
+            End If
         Catch ex As Exception
-            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : deleteFile" + vbCrLf + ex.Message)
+            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : DeleteFile" + vbCrLf + "MOTIVO : " + ex.Message)
         End Try
 
     End Sub
@@ -807,10 +835,10 @@ Public Class FtpSolution
             ''Quando é passado o arquivo o upload é feito logo após a criação do diretório
             If _fileDirectory <> "FILE" Then
                 If (_fileName <> "NEW") Then 'Salva o arquivo com o nome especificado no parametro _fileName
-                    Me.uploadFile(_fileDirectory, _CreatePath + "/" + _fileName)
+                    Me.UploadFile(_fileDirectory, _CreatePath + "/" + _fileName)
                 Else
                     _fileName = Me.recuperaNomeArquivoInFullPath(_fileDirectory)
-                    uploadFile(_fileDirectory, _CreatePath & "/" & _fileName)
+                    UploadFile(_fileDirectory, _CreatePath & "/" & _fileName)
                 End If
             End If
 
@@ -924,24 +952,50 @@ Public Class FtpSolution
 
         Try
 
-            If Not (_CreatePath.Contains(Me._Credentials.Domain)) Then
+            If Not (_CreatePath.Substring(0, 1) = "/") Then
+                _CreatePath = "/" + _CreatePath
+            End If
 
-                If Not (_CreatePath.Substring(0, 1) = "/") Then
-                    _CreatePath = "/" + _CreatePath
+            If (Me._Credentials.Domain <> "" And (Not Me.DirWeb.Contains(Me._Credentials.Domain))) Then
+
+                If Not (_CreatePath.Contains(Me._Credentials.Domain)) Then
+
+                    If (Me.DirWeb <> "" Or Me.DirWeb <> Nothing) Then
+                        If Not (_CreatePath.Contains(Me.DirWeb)) Then
+                            _CreatePath = Me.DirWeb + _CreatePath.Substring(1)
+                        End If
+                    End If
+
+                    _CreatePath = Me._Credentials.Domain + _CreatePath
+
                 End If
 
-                If (Me.DirWeb <> "" Or Me.DirWeb <> Nothing) Then
-                    If Not (_CreatePath.Contains(Me.DirWeb)) Then
-                        _CreatePath = Me.DirWeb + _CreatePath.Substring(1)
+            Else
+
+                If ((Not (Me.DirWeb.Contains(Me._Credentials.Domain)))) Then
+                    If ((Me.DirWeb <> "" Or Me.DirWeb <> Nothing)) Then
+                        If Not (_CreatePath.Contains(Me.DirWeb)) Then
+                            _CreatePath = Me.DirWeb + _CreatePath.Substring(1)
+                        End If
+                    End If
+                Else
+                    If ((Me.DirWeb <> "" Or Me.DirWeb <> Nothing)) Then
+                        If Not (_CreatePath.Contains(Me.DirWeb)) Then
+                            _CreatePath = Me.DirWeb + _CreatePath.Substring(1)
+                        End If
                     End If
                 End If
 
-                _CreatePath = Me._Credentials.Domain + _CreatePath
+                '_CreatePath = Me._Credentials.Domain + _CreatePath
 
             End If
 
             If (_CreatePath.Substring(_CreatePath.Length - 1) = "/" Or _CreatePath.Substring(_CreatePath.Length - 1) = "\") Then
                 _CreatePath = _CreatePath.Substring(0, _CreatePath.Length - 1)
+            End If
+
+            If (_CreatePath.Substring(0, 1) = "/") Then
+                _CreatePath = _CreatePath.Substring(1)
             End If
 
             If Not (_CreatePath.StartsWith("ftp://")) Then
@@ -1015,6 +1069,48 @@ Public Class FtpSolution
 
     End Function
 
+    ''' <summary>
+    '''  Define as credencias a serem utilizadas durante a conexão com o Ftp
+    ''' </summary>
+    ''' <param name="_ftpUser"> Usuário</param>
+    ''' <param name="_ftpPass"> Senha</param>
+    ''' <param name="_ftpDomain"> Dominio</param>
+    ''' <param name="_dirWeb">Diretório onde será salvo, deletado,renomeado um determinado arquivo</param> 
+    Public Sub SetCredentials(ByVal _ftpUser As String, ByVal _ftpPass As String, ByVal _ftpDomain As String, ByVal _dirWeb As String)
+        Me.DirWeb = _dirWeb
+        trataStrDominio(_ftpDomain)
+        _Credentials = New System.Net.NetworkCredential(_ftpUser, _ftpPass, _ftpDomain)
+        Me.CountTry() = 0
+    End Sub
+
+    Public Sub trataStrDominio(ByRef _ftpDomain As String)
+
+        If (_ftpDomain.StartsWith("http://")) Then
+            _ftpDomain = _ftpDomain.Substring(7)
+        End If
+
+        If (_ftpDomain.StartsWith("ftp://")) Then
+            _ftpDomain = _ftpDomain.Substring(6)
+        End If
+
+        If (_ftpDomain.Contains(".com/")) Then
+            If (_ftpDomain.Substring(_ftpDomain.LastIndexOf(".com/") + 5).Length > 0) Then
+                _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.LastIndexOf(".com/") + 5)
+            End If
+        End If
+
+        If (_ftpDomain.Contains(".br/")) Then
+            If (_ftpDomain.Substring(_ftpDomain.LastIndexOf(".br/") + 4).Length > 0) Then
+                _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.LastIndexOf(".br/") + 4)
+            End If
+        End If
+
+        If (_ftpDomain.EndsWith("/") Or _ftpDomain.EndsWith("\")) Then
+            _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.Length - 1)
+        End If
+
+    End Sub
+
 #End Region
 
 #Region "Gets e Sets"
@@ -1079,6 +1175,15 @@ Public Class FtpSolution
         End Set
     End Property
 
+    Public Property CountTry() As Int16
+        Get
+            Return _CountTry
+        End Get
+        Private Set(CountTry As Int16)
+            _CountTry = CountTry
+        End Set
+    End Property
+
     Public Sub setPastaDownload(ByVal caminho As String)
         Me.DownloadedPath = caminho
     End Sub
@@ -1133,47 +1238,6 @@ Public Class FtpSolution
         Me.DirWeb = ""
         trataStrDominio(_ftpDomain)
         _Credentials = New System.Net.NetworkCredential(_ftpUser, _ftpPass, _ftpDomain)
-    End Sub
-
-    ''' <summary>
-    '''  Define as credencias a serem utilizadas durante a conexão com o Ftp
-    ''' </summary>
-    ''' <param name="_ftpUser"> Usuário</param>
-    ''' <param name="_ftpPass"> Senha</param>
-    ''' <param name="_ftpDomain"> Dominio</param>
-    ''' <param name="_dirWeb">Diretório onde será salvo, deletado,renomeado um determinado arquivo</param> 
-    Public Sub setCredentials(ByVal _ftpUser As String, ByVal _ftpPass As String, ByVal _ftpDomain As String, ByVal _dirWeb As String)
-        Me.DirWeb = _dirWeb
-        trataStrDominio(_ftpDomain)
-        _Credentials = New System.Net.NetworkCredential(_ftpUser, _ftpPass, _ftpDomain)
-    End Sub
-
-    Public Sub trataStrDominio(ByRef _ftpDomain As String)
-
-        If (_ftpDomain.StartsWith("http://")) Then
-            _ftpDomain = _ftpDomain.Substring(7)
-        End If
-
-        If (_ftpDomain.StartsWith("ftp://")) Then
-            _ftpDomain = _ftpDomain.Substring(6)
-        End If
-
-        If (_ftpDomain.Contains(".com/")) Then
-            If (_ftpDomain.Substring(_ftpDomain.LastIndexOf(".com/") + 5).Length > 0) Then
-                _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.LastIndexOf(".com/") + 5)
-            End If
-        End If
-
-        If (_ftpDomain.Contains(".br/")) Then
-            If (_ftpDomain.Substring(_ftpDomain.LastIndexOf(".br/") + 4).Length > 0) Then
-                _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.LastIndexOf(".br/") + 4)
-            End If
-        End If
-
-        If (_ftpDomain.EndsWith("/") Or _ftpDomain.EndsWith("\")) Then
-            _ftpDomain = _ftpDomain.Substring(0, _ftpDomain.Length - 1)
-        End If
-
     End Sub
 
     Public ReadOnly Property getCredentials() As System.Net.NetworkCredential
