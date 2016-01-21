@@ -31,7 +31,7 @@ GerenciadorFtp
 	<param name="FTPUser">Usuário do servidor FTP</param>
 	<param name="FTPPass">Senha de Usuário do servidor FTP</param>
 	<remarks></remarks>
-</member><member name="M:GerenciadorFtp.FtpSolution.uploadFile(System.String,System.String)">
+</member><member name="M:GerenciadorFtp.FtpSolution.UploadFile(System.String,System.String)">
 	<summary>
  Realiza o Upload de Arquivos para um servidor FTP (File Transfer Protocol)
  </summary>
@@ -110,6 +110,14 @@ GerenciadorFtp
 	<param name="filePath">Caminho do diretório do arquivo</param>
 	<returns>Nome.extensão do arquivo </returns>
 	<remarks></remarks>
+</member><member name="M:GerenciadorFtp.FtpSolution.SetCredentials(System.String,System.String,System.String,System.String)">
+	<summary>
+  Define as credencias a serem utilizadas durante a conexão com o Ftp
+ </summary>
+	<param name="_ftpUser"> Usuário</param>
+	<param name="_ftpPass"> Senha</param>
+	<param name="_ftpDomain"> Dominio</param>
+	<param name="_dirWeb">Diretório onde será salvo, deletado,renomeado um determinado arquivo</param>
 </member><member name="M:GerenciadorFtp.FtpSolution.setCredentials(System.String,System.String,System.String)">
 	<summary>
  Define as credencias a serem utilizadas durante a conexão com o Ftp
@@ -118,14 +126,6 @@ GerenciadorFtp
 	<param name="_ftpPass"> Senha</param>
 	<param name="_ftpDomain"> Dominio</param>
 	<remarks></remarks>
-</member><member name="M:GerenciadorFtp.FtpSolution.setCredentials(System.String,System.String,System.String,System.String)">
-	<summary>
-  Define as credencias a serem utilizadas durante a conexão com o Ftp
- </summary>
-	<param name="_ftpUser"> Usuário</param>
-	<param name="_ftpPass"> Senha</param>
-	<param name="_ftpDomain"> Dominio</param>
-	<param name="_dirWeb">Diretório onde será salvo, deletado,renomeado um determinado arquivo</param>
 </member>
 </members>
 </doc>
