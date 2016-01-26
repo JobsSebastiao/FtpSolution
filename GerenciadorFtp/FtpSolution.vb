@@ -140,16 +140,16 @@ Public Class FtpSolution
         Catch ex As WebException
             ' Caso o motivo do erro seja não autorização de acesso ao ftp
             ' , é feita mais uma tentativa utilizando ou não o Dominio nas credenciais da conexão
-            If (Me.CountTry = 1) Then
-                If (ex.Status = WebExceptionStatus.ProtocolError) Then
+            If (ex.Status = WebExceptionStatus.ProtocolError) Then
+                If (Me.CountTry = 1) Then
                     Me._Credentials.Domain = IIf(Me._Credentials.Domain <> "", "", ex.Response.ResponseUri.Host)
                     UploadFile(fileName, uploadPath)
                 End If
             Else
-                Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + "MOTIVO : " + ex.Message)
+                Throw New WebException("MÉTODO : uploadFile" + vbCrLf + "ERRO : " + ex.Message)
             End If
         Catch ex As Exception
-            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : uploadFile" + vbCrLf + "MOTIVO : " + ex.Message)
+            Throw New Exception("MÉTODO : uploadFile" + vbCrLf + "ERRO : " + ex.Message)
         End Try
     End Sub
 
@@ -194,19 +194,20 @@ Public Class FtpSolution
             ' Caso o motivo do erro seja não autorização de acesso ao ftp
             ' , é feita mais uma tentativa utilizando ou não o Dominio nas credenciais da conexão
             If (ex.Message.Contains("550")) Then
-                Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : DeleteFile" + vbCrLf + "MOTIVO : " + ex.Message)
+                Throw New WebException("MÉTODO : DeleteFile" + vbCrLf + "ERRO : " + ex.Message)
             End If
 
-            If (Me.CountTry = 1) Then
-                If (ex.Status = WebExceptionStatus.ProtocolError) Then
+
+            If (ex.Status = WebExceptionStatus.ProtocolError) Then
+                If (Me.CountTry = 1) Then
                     Me._Credentials.Domain = IIf(Me._Credentials.Domain <> "", "", ex.Response.ResponseUri.Host)
                     DeleteFile(nomeArquivoADeletar)
                 End If
             Else
-                Throw New WebException("Não Foi possível realizar a ação solicitada." + vbCrLf + "MÉTODO : DeleteFile" + vbCrLf + "MOTIVO : " + ex.Message)
+                Throw New WebException("MÉTODO : DeleteFile" + vbCrLf + "ERRO : " + ex.Message)
             End If
         Catch ex As Exception
-            Throw New Exception("Ocorreram problemas durante o upload do arquivo." + vbCrLf + "MÉTODO : DeleteFile" + vbCrLf + "MOTIVO : " + ex.Message)
+            Throw New Exception("MÉTODO : DeleteFile" + vbCrLf + "ERRO : " + ex.Message)
         End Try
 
     End Sub
