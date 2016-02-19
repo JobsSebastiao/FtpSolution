@@ -12,8 +12,8 @@ namespace TesteFtp
         static void Main(string[] args)
         {
             FtpSolution ftp = new FtpSolution();
-            //ftp.setCredentials("thi_dev_tecware_temp", "UrlfExuPPy", "stefanie.thiagoquinteiro.com");
-            ftp.setCredentials("tecware", "T3c16@", "ftp.tecware.com.br/");
+            //ftp.setCredentials("********", "****************", "********");
+            ftp.setCredentials("*******", "********", "********");
             //Test Ok 19012016
             ftp.uploadFile(@"C:\Users\proje\Pictures\illustration_07.jpg", "httpdocs/MakeTecware/LogoTecware.jpg");
             //Test Ok 19012016
